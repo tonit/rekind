@@ -8,6 +8,16 @@ import (
 
 func main() {
 	args := os.Args[1:]
+
+	commands := []augment.CommandAugmentationInput{
+		{Name: "get images", Run: func(args []string) {
+			// do something else
+		}},
+		{Name: "", Run: func(args []string) {
+			augment.OneOffCommand("kind", args)
+		}},
+	}
+
 	augmenter := []augment.FlagAugmentationInput{
 		{Name: "kubeversion", Replace: func(match augment.AugmentationResult) (string, string) {
 			return "image", getNodeImage(augment.RunForValue("kind", []string{"version", "-q"}), match.Value)
@@ -16,7 +26,7 @@ func main() {
 		{Name: "image", Erase: true},
 	}
 
-	augment.BuildAndRun(augmenter, args, "kind")
+	augment.BuildAndRun(commands, augmenter, args)
 }
 
 func getNodeImage(kindVersion string, k8s string) string {

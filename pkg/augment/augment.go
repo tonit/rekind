@@ -19,6 +19,11 @@ type FlagAugmentationInput struct {
 	After   func(match AugmentationResult)
 }
 
+type CommandAugmentationInput struct {
+	Name string
+	Run  func(args []string)
+}
+
 type AugmentationResult struct {
 	Input FlagAugmentationInput
 	//Stripped []string
@@ -28,10 +33,26 @@ type AugmentationResult struct {
 	Value     string
 }
 
-func BuildAndRun(augmenter []FlagAugmentationInput, args []string, executable string) {
+func BuildAndRun(commands []CommandAugmentationInput, augmenter []FlagAugmentationInput, args []string) {
+	commandStack := extractCommandStack(args)
 	context := BuildContext(augmenter, args)
 	cmd := MakeCommand(args, context)
+	joined := strings.Join(commandStack, " ")
 
+	// find command: first to match will win
+	for _, command := range commands {
+		switch {
+		case strings.HasPrefix(joined, command.Name):
+			//fmt.Println("Found runner: \"" + command.Name + "\" with " + strings.Join(cmd, " "))
+			command.Run(cmd)
+			return
+		}
+	}
+
+	//oneOffCommand(executable, cmd)
+}
+
+func OneOffCommand(executable string, cmd []string) {
 	command := execute.ExecTask{
 		Command:     executable,
 		Args:        cmd,
@@ -115,6 +136,7 @@ func extractAugmentOption(searchFor FlagAugmentationInput, args []string) Augmen
 	var foundValue string
 	var augmentEnd = -1
 	var augmentStart = -1
+	var commandStack []string
 
 	for i, arg := range args {
 		switch {
@@ -132,6 +154,8 @@ func extractAugmentOption(searchFor FlagAugmentationInput, args []string) Augmen
 			foundValue = arg
 			inFlag = false
 			continue
+		case !strings.HasPrefix(arg, "--") && !inFlag && !strings.Contains(arg, "="):
+			commandStack = append(commandStack, arg)
 		}
 	}
 	res := AugmentationResult{
@@ -141,6 +165,28 @@ func extractAugmentOption(searchFor FlagAugmentationInput, args []string) Augmen
 		End:   augmentEnd,
 	}
 	return res
+}
+
+func extractCommandStack(args []string) []string {
+	inFlag := false
+	var commandStack []string
+
+	for _, arg := range args {
+		switch {
+		case strings.HasPrefix(arg, "-") && strings.Contains(arg, "="):
+			continue
+		case strings.HasPrefix(arg, "-") && !strings.Contains(arg, "="):
+			inFlag = true
+			continue
+		case inFlag:
+			inFlag = false
+			continue
+		case !strings.HasPrefix(arg, "-") && !inFlag && !strings.Contains(arg, "="):
+			commandStack = append(commandStack, arg)
+		}
+	}
+
+	return commandStack
 }
 
 func difference(slice1 []string, slice2 []string) []string {
