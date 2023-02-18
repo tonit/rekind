@@ -69,10 +69,10 @@ Even better, copy namespaces from another context:
 
 ## Further Ideas
 
-Of cause we can do exactly this to other CLIs.
-How about a "rejava" that allows to run java programs with other, more opinionated defaults?
-Or a "regit" that 
+Of course, we can do exactly this to other CLIs.
+How about a "rejava" that allows to run java programs with other, 
+more opinionated defaults? 
 
 ## Collaboration
-
+Contact me on https://www.linkedin.com/in/tonit/ or here on github.
 
