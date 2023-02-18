@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"github.com/tonit/rekind/pkg/augment"
+	"github.com/tonit/rekind/pkg/docker"
 	"github.com/tonit/rekind/pkg/images"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -11,7 +14,15 @@ func main() {
 
 	commands := []augment.CommandAugmentationInput{
 		{Name: "get images", Run: func(args []string) {
-			// do something else
+			var id, err = docker.FindContainer("kind") // use name from flags really...
+			if err != nil {
+				panic(err)
+			}
+			var images = docker.ListImages(id) // use name from flags really...
+			for _, imgs := range images.Images {
+				fmt.Println(imgs.ID + "," + strings.Join(imgs.RepoTags, ",") + "," + imgs.Size)
+			}
+
 		}},
 		{Name: "", Run: func(args []string) {
 			augment.OneOffCommand("kind", args)
@@ -24,6 +35,7 @@ func main() {
 		}},
 		{Name: "withNamespaces", Erase: true, After: func(match augment.AugmentationResult) {}},
 		{Name: "image", Erase: true},
+		{Name: "name", Erase: false}, // TODO: will copy it to the context
 	}
 
 	augment.BuildAndRun(commands, augmenter, args)
