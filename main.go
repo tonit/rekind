@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"github.com/fatih/color"
 	"github.com/tonit/rekind/pkg/augment"
 	"github.com/tonit/rekind/pkg/docker"
 	"github.com/tonit/rekind/pkg/images"
@@ -10,6 +10,7 @@ import (
 )
 
 func main() {
+	color.Magenta("Using reKinD - an augmented flavour of KinD.")
 	args := os.Args[1:]
 
 	commands := []augment.CommandAugmentationInput{
@@ -20,11 +21,12 @@ func main() {
 			}
 			var images = docker.ListImages(id) // use name from flags really...
 			for _, imgs := range images.Images {
-				fmt.Println(imgs.ID + "," + strings.Join(imgs.RepoTags, ",") + "," + imgs.Size)
+				color.Magenta(imgs.ID + "," + strings.Join(imgs.RepoTags, ",") + "," + imgs.Size)
 			}
 
 		}},
 		{Name: "", Run: func(args []string) {
+			color.Magenta("Running augmented: kind " + strings.Join(args, " "))
 			augment.OneOffCommand("kind", args)
 		}},
 	}
