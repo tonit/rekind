@@ -1,8 +1,10 @@
 package augment
 
 import (
+	"fmt"
 	execute "github.com/alexellis/go-execute/pkg/v1"
 	util "github.com/tonit/rekind/pkg"
+	"strconv"
 	"strings"
 )
 
@@ -59,7 +61,11 @@ func OneOffCommand(executable string, cmd []string) {
 		StreamStdio: true,
 	}
 
-	command.Execute()
+	var res, err = command.Execute()
+	if err != nil {
+		fmt.Println("Error..", err)
+	}
+	fmt.Println("Exit: " + strconv.Itoa(res.ExitCode))
 }
 
 func RunForValue(executable string, args []string) string {

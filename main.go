@@ -1,7 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"github.com/fatih/color"
+	"github.com/jedib0t/go-pretty/v6/table"
+	"github.com/jedib0t/go-pretty/v6/text"
 	"github.com/tonit/rekind/pkg/augment"
 	"github.com/tonit/rekind/pkg/docker"
 	"github.com/tonit/rekind/pkg/images"
@@ -10,7 +13,11 @@ import (
 )
 
 func main() {
-	color.Magenta("Using reKinD - an augmented flavour of KinD.")
+	//color.HiCyan("Using reKinD - an augmented flavour of KinD.")
+	var colored = color.HiCyanString("augmented flavour")
+	fmt.Println(">> reKinD - " + colored + " of KinD <<")
+	//fmt.Println("")
+
 	args := os.Args[1:]
 
 	commands := []augment.CommandAugmentationInput{
@@ -19,10 +26,26 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			var images = docker.ListImages(id) // use name from flags really...
-			for _, imgs := range images.Images {
-				color.Magenta(imgs.ID + "," + strings.Join(imgs.RepoTags, ",") + "," + imgs.Size)
+			var imagesList = docker.ListImages(id) // use name from flags really...
+			t := table.NewWriter()
+			t.SetOutputMirror(os.Stdout)
+			t.AppendHeader(table.Row{"Image", "Checksum", "Size"})
+			t.SetColumnConfigs([]table.ColumnConfig{
+				{
+					Name:  "Size",
+					Align: text.AlignRight,
+					//Colors: text.Colors{text.FgHiCyan},
+				},
+			})
+
+			for _, imgs := range imagesList.Images {
+				t.AppendRow([]interface{}{strings.Join(imgs.RepoTags, ","), imgs.ID, imgs.Size})
 			}
+			t.SetStyle(table.StyleLight)
+			t.Style().Color.Header = text.Colors{text.FgHiCyan}
+			t.Style().Color.Row = text.Colors{text.FgHiCyan}
+
+			t.Render()
 
 		}},
 		{Name: "", Run: func(args []string) {
